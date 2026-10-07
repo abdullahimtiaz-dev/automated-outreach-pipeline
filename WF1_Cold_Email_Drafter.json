@@ -1,0 +1,606 @@
+{
+  "name": "WF1 - Cold Email Drafter",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "id": "400b01ab-bec8-4391-93d0-2dae0efa91e3",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -128
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "700e7856-5407-4cbc-97ca-0b725a3f75e2",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "maxItems": 5
+      },
+      "id": "7d03c661-517b-4c2f-90c8-215f74405752",
+      "name": "Limit (Batch of 5)",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        448,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Brand: {{ $json[\"Brand Name\"] }}\nNiche: {{ $json[\"Niche\"] }}\nWebsite: {{ $json[\"Website / Instagram Link\"] }}\nCity: {{ $json[\"City\"] }}\nObserved Opportunity: {{ $json[\"Observed Opportunity\"] }}",
+        "needsFallback": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Write short, human cold emails for Alex, an AI & workflow automation builder targeting Pakistani businesses.\n\nGoal: start a genuine conversation about automating repetitive business work. Do not hard-sell.\n\nSTYLE\n- Human, humble, conversational.\n- Sound like one person, not an agency.\n- Simple English.\n- 70–110 words for BODY.\n- No hype, buzzwords, generic praise, or exaggerated claims.\n\nPOSITIONING\nAlex builds AI and workflow automations that reduce repetitive manual work, save time, reduce errors, and improve day-to-day operations.\n\nPERSONALIZATION\nUse the provided business information naturally.\nTreat \"Observed Opportunity\" as a hypothesis, not a confirmed internal problem.\nUse it as a relevant angle, but keep the pitch open to other automation opportunities.\nNever invent company facts, systems, tools, problems, clients, results, or savings.\n\nDo not say:\n- \"I noticed you have a problem\"\n- \"I know your process\"\n- \"I can save X hours/money\"\n- anything implying confirmed internal knowledge\n\nAvoid mentioning n8n, Upwork, GitHub, freelancing, or technical jargon.\n\nGREETING/SIGNATURE\nDo NOT write a greeting.\nDo NOT write a sign-off or signature.\nDo NOT start BODY with Hi, Hello, Hey, Dear, etc.\nDo NOT end BODY with Best, Thanks, Regards, Alex, or similar.\nEdit Fields adds these later.\n\nSUBJECT\n- 3–7 words.\n- Natural and relevant.\n- Curiosity-driven, not clickbait.\n- Never use \"Business Proposal\" or \"AI Automation Services\".\n\nOUTPUT\nReturn exactly two lines:\n\nSUBJECT: [subject]\nBODY: [body only]"
+            }
+          ]
+        }
+      },
+      "id": "db77806a-818c-4c4a-9a05-445e76393051",
+      "name": "Basic LLM Chain - Opener",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1-0001",
+              "name": "subject",
+              "type": "string",
+              "value": "={{ $json.text.match(/SUBJECT:\\s*(.*)/)?.[1]?.trim() || \"A quick idea for \" + $('Limit (Batch of 5)').item.json[\"Brand Name\"] }}"
+            },
+            {
+              "id": "b1-0002",
+              "name": "body",
+              "type": "string",
+              "value": "=Hi {{ $('Limit (Batch of 5)').item.json[\"Contact Person\"] || \"there\" }},\n\n{{ $json.text.match(/BODY:\\s*([\\s\\S]*)/)?.[1]?.trim() || \"\" }}\n\nBest Regards,\nAlex Morgan\nAI & Workflow Automation\nLinkedin: https://www.linkedin.com/in/yourprofile"
+            },
+            {
+              "id": "b1-0003",
+              "name": "to_email",
+              "type": "string",
+              "value": "={{ $('Limit (Batch of 5)').item.json[\"Email\"] }}"
+            },
+            {
+              "id": "b1-0004",
+              "name": "row_number",
+              "type": "number",
+              "value": "={{ $('Limit (Batch of 5)').item.json[\"row_number\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1572cb11-893e-4091-a7aa-bcb62af4756b",
+      "name": "Edit Fields - Build Email",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.body }}",
+        "options": {
+          "sendTo": "={{ $json.to_email }}"
+        }
+      },
+      "id": "6441eadb-cdb7-43fe-8452-c8e82095308d",
+      "name": "Gmail - Create Draft",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1248,
+        -32
+      ],
+      "webhookId": "YOUR_WEBHOOK_ID",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "outreach_tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1919012893,
+          "mode": "list",
+          "cachedResultName": "Outreach Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=1919012893"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Outreach Channel": "Email",
+            "Status": "Drafted",
+            "row_number": "={{ $('Get row(s) in sheet').item.json.row_number }}",
+            "DRAFT ID": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "#",
+              "displayName": "#",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Brand Name",
+              "displayName": "Brand Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Platform",
+              "displayName": "Platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Website / Instagram Link",
+              "displayName": "Website / Instagram Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Niche",
+              "displayName": "Niche",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Contact Person",
+              "displayName": "Contact Person",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "WhatsApp / Phone",
+              "displayName": "WhatsApp / Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Outreach Channel",
+              "displayName": "Outreach Channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Observed Opportunity",
+              "displayName": "Observed Opportunity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date First Contacted",
+              "displayName": "Date First Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Follow-up 1 Date",
+              "displayName": "Follow-up 1 Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Follow-up 2 Date",
+              "displayName": "Follow-up 2 Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Replied?",
+              "displayName": "Replied?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Next Action",
+              "displayName": "Next Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "DRAFT ID",
+              "displayName": "DRAFT ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "THREAD ID",
+              "displayName": "THREAD ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c115849b-6735-445e-bd14-0127f3400d67",
+      "name": "Sheets - Update Draft Status",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1472,
+        -32
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "outreach_tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1919012893,
+          "mode": "list",
+          "cachedResultName": "Outreach Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=1919012893"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Not contacted"
+            },
+            {
+              "lookupColumn": "Date First Contacted"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        -32
+      ],
+      "id": "90d9be10-c00b-4e95-bf8a-c4bbc05e4159",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        176
+      ],
+      "id": "9bc096b5-85db-4202-a131-a6c45717c3e9",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        768,
+        176
+      ],
+      "id": "bb94b3f0-90f5-4f86-a7c8-04c22481b0a1",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "YOUR_GROQ_CREDENTIAL_ID",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit (Batch of 5)": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain - Opener",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain - Opener": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields - Build Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - Build Email": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Create Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Create Draft": {
+      "main": [
+        [
+          {
+            "node": "Sheets - Update Draft Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets - Update Draft Status": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Limit (Batch of 5)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain - Opener",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain - Opener",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Karachi",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "UUkd6fkYTpfWqGT3"
+  },
+  "versionId": "2c6050eb-e3e1-49bd-8187-e93cdf48ff85",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "nodeGroups": [],
+  "id": "u0qaNJUoDMKHe34s",
+  "tags": []
+}

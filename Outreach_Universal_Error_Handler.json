@@ -1,0 +1,127 @@
+{
+  "name": "Outreach - Universal Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "820d936c-d95e-4fcb-8523-dd7440c58f4a",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3-0001",
+              "name": "execution_id",
+              "type": "string",
+              "value": "={{ $json.execution.id }}"
+            },
+            {
+              "id": "d3-0002",
+              "name": "workflow_name",
+              "type": "string",
+              "value": "={{ $json.workflow.name }}"
+            },
+            {
+              "id": "d3-0003",
+              "name": "error_message",
+              "type": "string",
+              "value": "={{ $json.execution.error.message }}"
+            },
+            {
+              "id": "d3-0004",
+              "name": "execution_url",
+              "type": "string",
+              "value": "={{ $json.execution.url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bb1c4d1d-5e91-4a27-a52b-d48b5f7ba164",
+      "name": "Edit Fields - Error Details",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "YOUR_SLACK_CHANNEL_ID",
+          "mode": "list",
+          "cachedResultName": "outreach-updates"
+        },
+        "text": "=🚨 *Workflow failed*\n*Workflow:* {{ $json.workflow_name }}\n*Execution ID:* {{ $json.execution_id }}\n*Error:* {{ $json.error_message }}\n*Link:* {{ $json.execution_url }}",
+        "otherOptions": {}
+      },
+      "id": "333e7952-dd41-43da-bbfd-a8dae178cb92",
+      "name": "Slack - Alert Team",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        0
+      ],
+      "webhookId": "YOUR_WEBHOOK_ID",
+      "credentials": {
+        "slackApi": {
+          "id": "YOUR_SLACK_CREDENTIAL_ID",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields - Error Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - Error Details": {
+      "main": [
+        [
+          {
+            "node": "Slack - Alert Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Karachi",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "a3bc05a4-49ec-4609-af53-75c38aa89937",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "nodeGroups": [],
+  "id": "UUkd6fkYTpfWqGT3",
+  "tags": []
+}
