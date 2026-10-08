@@ -28,7 +28,7 @@ n8n · Google Gemini / Groq (LangChain) · Google Sheets API · Gmail API · Sla
 ## 📸 Architecture
 
 ### 1. Initial Campaign Drafter (`WF1`)
-![WF1 - Initial Campaign Drafter](Assets/WF1.jpg)
+![WF1 - Initial Campaign Drafter](Assets/WF1.JPG)
 
 ### 2. Sent Email Tracker (`WF2`)
 ![WF2 - Sent Email Tracker](Assets/WF2.jpg)
