@@ -40,4 +40,4 @@ n8n · Google Gemini / Groq (LangChain) · Google Sheets API · Gmail API · Sla
 ![WF4 - Reply Watcher](Assets/WF4.JPG)
 
 ### 5. Universal Error Handler (`WF5`)
-![WF5 - Universal Error Handler](assets/Error.JPG)
+![WF5 - Universal Error Handler](Assets/Error.JPG)
