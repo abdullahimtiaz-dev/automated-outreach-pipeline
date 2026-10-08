@@ -28,16 +28,16 @@ n8n · Google Gemini / Groq (LangChain) · Google Sheets API · Gmail API · Sla
 ## 📸 Architecture
 
 ### 1. Initial Campaign Drafter (`WF1`)
-![WF1 - Initial Campaign Drafter](<img width="1862" height="891" alt="WF1" src="https://github.com/user-attachments/assets/cfa8c44f-d8b0-425b-bff7-f252c84a13e7" />)
+![WF1 - Initial Campaign Drafter](Assets/WF1.jpg)
 
 ### 2. Sent Email Tracker (`WF2`)
-![WF2 - Sent Email Tracker](<img width="1856" height="841" alt="WF2" src="https://github.com/user-attachments/assets/a339acb1-99e8-4f0d-a003-23969d667da8" />)
+![WF2 - Sent Email Tracker](Assets/WF2.jpg)
 
 ### 3. Smart Follow-up Drafter (`WF3`)
-![WF3 - Smart Follow-up Drafter](assets/wf3.png)
+![WF3 - Smart Follow-up Drafter](Assets/WF3.jpg)
 
 ### 4. Reply Watcher (`WF4`)
-![WF4 - Reply Watcher](assets/wf4.png)
+![WF4 - Reply Watcher](Assets/WF4.jpg)
 
 ### 5. Universal Error Handler (`WF5`)
-![WF5 - Universal Error Handler](assets/wf5.png)
+![WF5 - Universal Error Handler](assets/Error.jpg)
